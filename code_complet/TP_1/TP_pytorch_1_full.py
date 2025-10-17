@@ -41,8 +41,8 @@ mon_model.eval()
 # recuperation de l'image de test que l'on veut faire classer par le models
 # get all file from a specific repository
 base_dir = os.path.dirname(__file__)
-parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
-directory = os.path.join(parent_dir, './data/test_images_2')
+parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
+directory = os.path.join(parent_dir, './data/test_images')
 files = list_files(directory=directory)
 for image in files:
     mon_image = Image.open(image)
@@ -73,9 +73,10 @@ for image in files:
     # print('class_id de l element du tensor de sortie qui a la plus grande proba = {}'.format(class_id))
     # recuperation de la valeur de proba
     score_prediction = prediction[class_id].item()
+    predicted_class = weights.meta["categories"][class_id]
     # print('proba de la classe qui a la plus forte proba = {}'.format(score_prediction))
 
-    print('Prediction : l image {} est un {} avec la proba {}'.format(image_name, weights.meta["categories"][class_id], score_prediction))
-
+    print(f"{image_name:<25} | {predicted_class:<20} | {score_prediction:<10.3f}")
+    print("=" * 60)
 
 
