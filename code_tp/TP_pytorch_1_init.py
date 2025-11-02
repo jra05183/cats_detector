@@ -4,10 +4,12 @@ from PIL import Image
 import os
 
 
-def list_files(directory):
-    return glob.glob(directory + '/**/*', recursive=True)
 
-
+def list_image_files(directory, extensions=('.jpg', '.jpeg', '.png', '.bmp', '.gif')):
+    files = []
+    for ext in extensions:
+        files.extend(glob.glob(os.path.join(directory, '**', f'*{ext}'), recursive=True))
+    return files
 
 # utilisation d'un models pre-entraine pour la classification d'image nom = ResNet101
 # test avec une image
@@ -41,7 +43,7 @@ mon_model.eval()
 # get all file from a specific repository
 base_dir = os.path.dirname(__file__)
 directory = os.path.join(base_dir, 'data/test_images')
-files = list_files(directory=directory)
+files = list_image_files(directory)
 for image in files:
     mon_image = Image.open(image)
     image_name = image.split('/')[-1]

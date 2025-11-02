@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from torch.nn import CrossEntropyLoss
-from torch.optim import Adam
+from torch.optim import Adam, RMSprop
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from torchvision.datasets import ImageFolder
@@ -34,19 +34,23 @@ def check_dir():
 
 #------------------------------
 # parametres utilisés dans ce fichier
-ratio = 0.2 #ratio pour la taille du dataset de validation par rapport a la taille du dataset d'entrainement
+ratio = 0.4 #ratio pour la taille du dataset de validation par rapport a la taille du dataset
+# d'entrainement
 batch_size = 4 #taille du batch pour l'entrainement
-optimizer_lr = 3e-4 #learning rate de l'optimiseur
+optimizer_lr = 1e-4 #learning rate de l'optimiseur
 optimizer_weight_decay = 0.001 #weight decay de l'optimiseur
-nb_epoch = 5  #nombre d'epoch pour l'entrainement
+nb_epoch = 4  #nombre d'epoch pour l'entrainement
 use_saved_model = False
+
+best_val_acc = 0.0
 
 # Construct relative paths
 parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
 data_dir = os.path.join(parent_dir, 'images')
-data_test_dir = os.path.join(parent_dir, '.images/cat')
+data_test_dir = os.path.join(parent_dir, 'data/test_images')
 save_model_path = os.path.join(parent_dir, 'models/cat_model_init.pth')
 save_metrics_path = os.path.join(parent_dir, 'metrics')
+best_model_path = os.path.join(parent_dir, 'models/cat_model_best.pth')
 
 check_dir()
 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -110,7 +114,9 @@ def get_optimizer_loss_function():
     # il utilise la backpropagation pour calculer les gradients et le learning rate pour mettre a jour les poids
     # il existe plusieurs optimiseur : Adam, SGD, RMSprop, ...le plus classique est Adam
     # isntanciation de l'Optimiser :
-    optimiser = Adam(mon_model.parameters(), lr=optimizer_lr, weight_decay=optimizer_weight_decay)
+    # optimiser = Adam(mon_model.parameters(), lr=optimizer_lr, weight_decay=optimizer_weight_decay)
+    optimiser = RMSprop(mon_model.parameters(), lr=optimizer_lr,
+                        weight_decay=optimizer_weight_decay, momentum=0.9)
     # Linstanciation de la fonction de loss
     # c'est le calcul de la difference entre la prediction et la classe reelle, il existe plusieurs loss function
     # ici on utilise CrossEntropyLoss qui est la plus classique pour la classification
@@ -162,7 +168,7 @@ if __name__ == '__main__':
     validation_loss_tab = []
 
     # on a besoin de verifier que le ImageLoader fonctionne bien
-    check_result_image_loader(train_data_loader=train_data_loader)
+    # check_result_image_loader(train_data_loader=train_data_loader)
 
     # ------------------------------
     # 4 - entrainement du models : boucle sur un nombre d'epoch
@@ -252,6 +258,14 @@ if __name__ == '__main__':
         validation_accuracy.append(ep_eval_acc)
         average_validation_loss = total_validation_loss / nombre_total_image_validation_set
         validation_loss_tab.append(average_validation_loss)
+
+        if ep_eval_acc > best_val_acc:
+            best_val_acc = ep_eval_acc
+            # Save the best model
+            mon_model.categories = idx_to_class
+            torch.save(mon_model, best_model_path)
+            print(
+                f"Best model saved to {best_model_path} at epoch {epoch} with accuracy {best_val_acc:.4f}")
 
         # metrics de fin d'epoque
         end = time()
