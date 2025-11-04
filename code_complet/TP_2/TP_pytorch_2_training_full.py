@@ -34,14 +34,14 @@ def check_dir():
 
 #------------------------------
 # parametres utilisés dans ce fichier
+batch_size = 4 #taille du batch pour l'entrainement
 ratio = 0.4 #ratio pour la taille du dataset de validation par rapport a la taille du dataset
 # d'entrainement
-batch_size = 4 #taille du batch pour l'entrainement
 optimizer_lr = 1e-4 #learning rate de l'optimiseur
 optimizer_weight_decay = 0.001 #weight decay de l'optimiseur
 nb_epoch = 4  #nombre d'epoch pour l'entrainement
-use_saved_model = False
 
+use_saved_model = False
 best_val_acc = 0.0
 
 # Construct relative paths
