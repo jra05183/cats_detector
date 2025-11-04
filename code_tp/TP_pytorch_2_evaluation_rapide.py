@@ -13,7 +13,7 @@ def list_image_files(directory, extensions=('.jpg', '.jpeg', '.png', '.bmp', '.g
 
 # Construct relative paths
 base_dir = os.path.dirname(__file__)
-parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
+parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
 eval_dataset_dir = os.path.join(parent_dir, 'data/test_images')
 save_model_path = os.path.join(parent_dir, 'models/cat_model_init.pth')
 

@@ -42,7 +42,7 @@ mon_model.eval()
 # recuperation de l'image de test que l'on veut faire classer par le models
 # get all file from a specific repository
 base_dir = os.path.dirname(__file__)
-directory = os.path.join(base_dir, 'data/test_images')
+directory = os.path.join(base_dir, '../data/test_images')
 files = list_image_files(directory)
 for image in files:
     mon_image = Image.open(image)
@@ -60,6 +60,9 @@ for image in files:
     # appel du forward du models : resultat = prediction de la classe format = brut
     prediction_non_formatee = mon_model(batch)
 
+
+    print(mon_model)
+    print("test")
     # TODO
     # faire un print du models => regarder comment pytorch représente le models sous forme de graph de calcul
 
