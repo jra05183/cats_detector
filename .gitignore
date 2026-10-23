@@ -205,3 +205,8 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# Projet cats_detector : fichiers generes ou trop lourds pour le depot
+models/
+plots/
+cours/*.pptx

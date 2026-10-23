@@ -1,3 +1,12 @@
+"""TP 2 - Fine-tuning de ResNet-18 pour classer chat / pas chat.
+
+Squelette a completer (voir les TODO) : remplace la derniere couche du
+ResNet-18 par 2 sorties, entraine sur images/ (split train / validation),
+affiche les courbes de loss et d'accuracy et sauvegarde le modele dans
+models/ (cat_model_best.pth et cat_model_init.pth).
+
+Usage : python TP_pytorch_2_training.py
+"""
 import os
 from time import time
 
@@ -11,13 +20,13 @@ from torch.optim import Adam, RMSprop
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from torchvision.datasets import ImageFolder
-from torchvision.models import ResNet101_Weights, resnet101
+from torchvision.models import ResNet18_Weights, resnet18
 from tqdm import tqdm
 
 # Get the directory of the current script
 base_dir = os.path.dirname(__file__)
 
-# utilisation d'un models pre-entraine pour la classification d'image nom = ResNet101
+# utilisation d'un models pre-entraine pour la classification d'image nom = ResNet18
 # finetuning pour avoir en sortie une classification binaire : chat / pas chat
 # utilisation d'un dataset fait a partir de photos reparties dans des repertoires differents
 
@@ -35,8 +44,10 @@ def check_dir():
 #------------------------------
 # parametres utilisés dans ce fichier
 batch_size = 4 #taille du batch pour l'entrainement
-ratio = 0.4 #ratio pour la taille du dataset de validation par rapport a la taille du dataset
+ratio = 0.2 #ratio pour la taille du dataset de validation par rapport a la taille du dataset
 # d'entrainement
+SEED = 42 #graine aleatoire : meme split train / validation et meme initialisation a chaque lancement
+# (changer la valeur pour voir a quel point le resultat varie d'un tirage a l'autre)
 optimizer_lr = 1e-4 #learning rate de l'optimiseur
 optimizer_weight_decay = 0.001 #weight decay de l'optimiseur
 nb_epoch = 4  #nombre d'epoch pour l'entrainement
@@ -44,16 +55,19 @@ nb_epoch = 4  #nombre d'epoch pour l'entrainement
 use_saved_model = False
 best_val_acc = 0.0
 
+# fixe la graine du generateur aleatoire de PyTorch (init de la derniere couche, random_split, shuffle)
+torch.manual_seed(SEED)
+
 # Construct relative paths
-parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
+parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
 data_dir = os.path.join(parent_dir, 'images')
 data_test_dir = os.path.join(parent_dir, 'data/test_images')
 save_model_path = os.path.join(parent_dir, 'models/cat_model_init.pth')
-save_metrics_path = os.path.join(parent_dir, 'metrics')
+plots_dir = os.path.join(parent_dir, 'plots')  # les courbes sont sauvegardees ici (en .png)
 best_model_path = os.path.join(parent_dir, 'models/cat_model_best.pth')
 
 check_dir()
-device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cpu')
 
 
 def save_tensor_as_image(tensor, filename):
@@ -73,11 +87,11 @@ def save_tensor_as_image(tensor, filename):
 
 
 def instanciate_model():
-    # 1 - instanciation du modele : resnet101 => preparation pour le transfert learning
-    weights = ResNet101_Weights.DEFAULT
+    # 1 - instanciation du modele : resnet18 => preparation pour le transfert learning
+    weights = ResNet18_Weights.DEFAULT
     print('nombre de classes que le models sait classifier = {}'.format(len(weights.meta["categories"])))
     preprocess = weights.transforms()
-    mon_model = resnet101(weights=weights)
+    mon_model = resnet18(weights=weights)
     # freeze layers : car on veut faire du transfert learnin : pas de changement pour les layer d extraction de feature
     for param in mon_model.parameters():
         param.requires_grad = False
@@ -135,21 +149,34 @@ def check_result_image_loader(train_data_loader):
 
 
 def plot_training_metrics(training_metric, validation_metric, metric_name):
+    # nouvelle figure a chaque appel : sinon les courbes Accuracy et Loss se superposent
+    # (plt.show() les separait avant, mais on ne l'appelle plus systematiquement)
+    plt.figure()
     plt.plot(training_metric, label='Train')
     plt.plot(validation_metric, label='Validation')
     plt.xlabel('Epoch')
     plt.ylabel(metric_name)
     plt.title(metric_name + ' per epoch')
     plt.legend()
-    # plt.savefig(save_path)
-    plt.show()
+
+    # sauvegarde en .png : sur un serveur sans ecran (ou en SSH) plt.show() ne peut rien
+    # afficher, alors qu'on peut toujours ouvrir le .png dans l'editeur
+    os.makedirs(plots_dir, exist_ok=True)
+    plot_path = os.path.join(plots_dir, f"training_{metric_name.lower()}.png")
+    plt.savefig(plot_path, bbox_inches='tight')
+    print(f"Figure sauvegardee : {plot_path}")
+
+    # affichage a l'ecran seulement si matplotlib a une fenetre disponible (pas le backend Agg)
+    if 'agg' not in plt.get_backend().lower():
+        plt.show()
+    plt.close()  # libere la figure
 
 
 
 # main du TP
 if __name__ == '__main__':
 
-    # TODO : get model resnet101 + changer la derniere couche fully connected pour avoir 2 classes en sortie
+    # TODO : get model resnet18 + changer la derniere couche fully connected pour avoir 2 classes en sortie
 
 
     # TODO : instanciate un optimiseur et une loss function
@@ -179,6 +206,8 @@ if __name__ == '__main__':
         # initialisation des variables pour les metriques accuracy du training et du test
         nb_prediction_ok_current_epoch_training = 0
         nb_prediction_ok_current_epoch_validation = 0
+        num_train_samples = 0
+        num_val_samples = 0
         total_training_loss = 0
         total_validation_loss = 0
 
@@ -194,8 +223,9 @@ if __name__ == '__main__':
                 # TODO : initialisation de l'optimizer
 
 
-                # passage des donnees sur le device CPU ou CUDA si on a un GPU
+                # passage des donnees sur le device (CPU)
                 xtrain = xtrain.to(device)
+                ytrain = ytrain.to(device)
                 # TODO : appel du forward du models => calcul de la prediction
 
                 # TODO : calcul de la loss fonction entre le resultat de la prediction et la classe
@@ -225,15 +255,13 @@ if __name__ == '__main__':
                 # on compare la prediction avec la classe reelle
                 # on a 2 cas ou la prediction est correcte => on ajoute 2 au nombre de prediction correcte
                 nb_prediction_ok_current_epoch_training += int(torch.sum(train_pred == ytrain))
+                num_train_samples += ytrain.size(0)
 
-            #accuracy pour l'epoque en cours = nombre de prediction correcte / nombre total de prediction = taille du dataset de training
-            nombre_total_image_training_set = len_train*batch_size
-            training_accuracy_current_epoch = nb_prediction_ok_current_epoch_training / nombre_total_image_training_set
+            # accuracy = predictions correctes / nombre reel d'images (pas len*batch_size)
+            training_accuracy_current_epoch = nb_prediction_ok_current_epoch_training / num_train_samples
             training_accuracy_tab.append(training_accuracy_current_epoch)
-            #To calculate the training loss for an epoch, you need to accumulate the loss for each batch and then average it over the number of batches
-            # loss est un tensor => on le transforme en float pour l'ajouter a la liste
-            # Calculate the average loss for the epoch
-            average_training_loss = total_training_loss / nombre_total_image_training_set
+            # loss.item() = moyenne par batch => moyenner sur le nombre de batches
+            average_training_loss = total_training_loss / len_train
             training_loss_tab.append(average_training_loss)
 
         # Evaluate
@@ -248,20 +276,20 @@ if __name__ == '__main__':
                 test_prob = mon_model(xtest)
                 test_pred = torch.max(test_prob, 1).indices
                 nb_prediction_ok_current_epoch_validation += int(torch.sum(test_pred == ytest))
+                num_val_samples += ytest.size(0)
                 loss = loss_fn(test_prob, ytest)
                 # Accumulate the loss
                 total_validation_loss += loss.item()
 
-        # accuracy pour l'epoque en cours = nombre de prediction correcte / nombre total de prediction = taille du dataset de validation
-        nombre_total_image_validation_set = len_val*batch_size
-        ep_eval_acc = nb_prediction_ok_current_epoch_validation / nombre_total_image_validation_set
+        ep_eval_acc = nb_prediction_ok_current_epoch_validation / num_val_samples
         validation_accuracy.append(ep_eval_acc)
-        average_validation_loss = total_validation_loss / nombre_total_image_validation_set
+        average_validation_loss = total_validation_loss / len_val
         validation_loss_tab.append(average_validation_loss)
 
         if ep_eval_acc > best_val_acc:
             best_val_acc = ep_eval_acc
             # Save the best model
+            os.makedirs(os.path.dirname(best_model_path), exist_ok=True)
             mon_model.categories = idx_to_class
             torch.save(mon_model, best_model_path)
             print(
@@ -280,6 +308,7 @@ if __name__ == '__main__':
 
     # fin du training on sauvegarde le models en local
     # ajout des classe et de leur index dans le models
+    os.makedirs(os.path.dirname(save_model_path), exist_ok=True)
     mon_model.categories = idx_to_class
     torch.save(mon_model, save_model_path)
     print(f"Model saved to {save_model_path}")

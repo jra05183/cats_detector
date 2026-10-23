@@ -1,0 +1,16 @@
+# Python 3.10 recommande (teste avec torch 2.14 / torchvision 0.29)
+# Installation CPU : https://pytorch.org/get-started/locally/
+
+# TP 1 et 2 : modele, donnees, images
+torch>=2.0
+torchvision>=0.15
+Pillow>=10.0
+numpy>=1.24
+
+# TP 2 : entrainement (courbes, barre de progression)
+matplotlib>=3.8
+tqdm>=4.66
+
+# TP 2 : evaluation (matrice de confusion)
+scikit-learn>=1.3
+seaborn>=0.13
