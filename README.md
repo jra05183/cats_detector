@@ -69,5 +69,5 @@ Après un changement d’architecture (ex. passage à ResNet-18), **réentraîne
 
 ## Support de cours
 
-- `cours/cours_NN_2025_final.pdf`
+- Le support de cours est distribué séparément (il n'est pas dans le dépôt).
 - Énoncés : `code_tp/*.docx`
