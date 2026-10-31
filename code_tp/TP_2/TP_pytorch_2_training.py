@@ -16,7 +16,7 @@ import torch
 import torch.nn as nn
 from PIL import Image
 from torch.nn import CrossEntropyLoss
-from torch.optim import Adam, RMSprop
+from torch.optim import RMSprop
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
 from torchvision.datasets import ImageFolder
@@ -59,7 +59,7 @@ best_val_acc = 0.0
 torch.manual_seed(SEED)
 
 # Construct relative paths
-parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
+parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
 data_dir = os.path.join(parent_dir, 'images')
 data_test_dir = os.path.join(parent_dir, 'data/test_images')
 save_model_path = os.path.join(parent_dir, 'models/cat_model_init.pth')
@@ -128,6 +128,7 @@ def get_optimizer_loss_function():
     # il utilise la backpropagation pour calculer les gradients et le learning rate pour mettre a jour les poids
     # il existe plusieurs optimiseur : Adam, SGD, RMSprop, ...le plus classique est Adam
     # isntanciation de l'Optimiser :
+    # (pour essayer Adam : l'importer avec "from torch.optim import Adam", puis decommenter la ligne suivante)
     # optimiser = Adam(mon_model.parameters(), lr=optimizer_lr, weight_decay=optimizer_weight_decay)
     optimiser = RMSprop(mon_model.parameters(), lr=optimizer_lr,
                         weight_decay=optimizer_weight_decay, momentum=0.9)

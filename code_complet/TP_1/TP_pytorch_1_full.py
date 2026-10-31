@@ -67,11 +67,11 @@ def main():
 
         # application du preprocessing a l'image de test
         image_preprocessed = preprocess(mon_image)
-        print(f'shape de l image apres le preprocess {image_preprocessed.shape}')
+        #print(f'shape de l image apres le preprocess {image_preprocessed.shape}')
 
         # formatage de l'input pour quelle passe bien dans le models
         batch = image_preprocessed.unsqueeze(0)
-        print(f'shape de l input du models {batch.shape}')
+        #print(f'shape de l input du models {batch.shape}')
 
         # appel du forward du models : resultat = prediction de la classe format = brut
         # inference seulement : pas besoin de calculer les gradients (economie memoire et temps)
@@ -84,7 +84,7 @@ def main():
         # exemple l'element avec l'id 282 = class tiger cat
         # la classe la plus probable est celle qui a la proba la plus grande => on utilise sofmax pour avec l'id de la classe qui a la plus grande proba
         prediction = prediction_non_formatee.squeeze(0).softmax(0)
-        print(f'shape de la sortie du models (prediction) = {prediction.shape}')
+        #print(f'shape de la sortie du models (prediction) = {prediction.shape}')
 
         # recuperation du class_id de la prediction
         class_id = prediction.argmax().item()

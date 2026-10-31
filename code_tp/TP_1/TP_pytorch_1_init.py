@@ -53,7 +53,7 @@ def main():
     # recuperation de l'image de test que l'on veut faire classer par le models
     # get all file from a specific repository
     base_dir = os.path.dirname(__file__)
-    directory = os.path.join(base_dir, '../data/test_images')
+    directory = os.path.join(base_dir, '../../data/test_images')
     files = list_image_files(directory)
     for image in files:
         mon_image = Image.open(image).convert('RGB')

@@ -209,5 +209,13 @@ __marimo__/
 # Projet cats_detector : fichiers generes ou trop lourds pour le depot
 models/
 plots/
+runs/
+# filet de securite : un modele (44 Mo) ne doit jamais partir dans le depot, meme hors de models/
+*.pth
+# images de debug creees par check_result_image_loader (dans le dossier courant)
+label_*.png
+# fichiers systeme (etudiants sous Windows / macOS)
+Thumbs.db
+.DS_Store
 cours/*.pptx
 cours/*.pdf

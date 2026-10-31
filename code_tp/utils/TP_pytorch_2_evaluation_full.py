@@ -33,7 +33,7 @@ MODEL_NAME = 'cat_model_init.pth'  # modele a tester (dans models/) : cat_model_
 batch_size = 4 #taille du batch pour l'entrainement
 
 # Construct relative paths
-parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir))
+parent_dir = os.path.abspath(os.path.join(base_dir, os.pardir, os.pardir))
 eval_dataset_dir = os.path.join(parent_dir, 'data/test_images')
 models_dir = os.path.join(parent_dir, 'models')
 save_model_path = os.path.join(models_dir, MODEL_NAME)
